@@ -1,0 +1,2 @@
+L.Util.ecompare (l: L.Term) (r: L.Term): Bool
+L.Util.ecompare l r = L.Util.compare (L.Util.reflect (L.Util.eval l)) (L.Util.reflect (L.Util.eval r)) 0

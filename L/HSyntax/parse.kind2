@@ -1,0 +1,93 @@
+L.HSyntax.parse.is_word_char: Char -> Bool {
+  char => (U60.if (|(|(|
+    (& (<= char 'z') (>= char 'a'))
+    (& (<= char 'Z') (>= char 'A')))
+    (& (<= char '9') (>= char '0')))
+    (== char '_')
+  ) Bool.true Bool.false)
+}
+
+NamedVar (name: String): Term // Useful tool here.
+
+L.HSyntax.parse.name: Parser String { Parser.take_while1 L.HSyntax.parse.is_word_char }
+
+L.HSyntax.parse.term.variable {
+  do Parser {
+    ask _ = Parser.skip_whitespace
+    ask name = L.HSyntax.parse.name
+    return (NamedVar name)
+  }
+}
+L.HSyntax.parse.term.apply {
+  do Parser {
+    ask _ = Parser.skip_whitespace
+    ask _ = Parser.char '('
+    ask t1 = L.HSyntax.parse.term
+    ask t2 = L.HSyntax.parse.term
+    ask _ = Parser.skip_whitespace
+    ask _ = Parser.char ')'
+    return (Term.app t1 t2)
+  }
+}
+
+L.HSyntax.parse.term.container (chars: List U60) (build: String -> Term -> Term -> Term): Parser Term {
+  do Parser {
+    ask _ = Parser.skip_whitespace
+    ask _ = Parser.first_of (List.map chars (char => Parser.char char))
+    ask _ = Parser.skip_whitespace
+    ask _ = Parser.try (Parser.char '(')
+    ask _ = Parser.skip_whitespace
+    ask var_name = L.HSyntax.parse.name
+    ask _ = Parser.skip_whitespace
+    Parser.first_of [
+      do Parser {
+        ask _ = Parser.char ':'
+        ask type = L.HSyntax.parse.term
+        ask _ = Parser.skip_whitespace
+        ask _ = Parser.try (Parser.char ')')
+        ask body = L.HSyntax.parse.term
+        return (build var_name type body)
+      }
+      do Parser {
+        let type = Term.hole
+        ask _ = Parser.skip_whitespace
+        ask _ = Parser.try (Parser.char ')')
+        ask body = L.HSyntax.parse.term
+        return (build var_name type body)
+      }
+    ]
+  }
+}
+
+L.HSyntax.parse.with_paren <w> (parser: (Parser w)) {
+  do Parser {
+    ask _ = Parser.skip_whitespace
+    ask _ = Parser.char '('
+    ask v = parser
+    ask _ = Parser.skip_whitespace
+    ask _ = Parser.char ')'
+    return v
+  }
+}
+
+L.HSyntax.parse.term {
+  Parser.first_of [
+    L.HSyntax.parse.term.apply
+    (L.HSyntax.parse.term.container ['@', 'λ'] (var_name => type => body => (Term.lam type arg => (Replace body (NamedVar (HVM.log var_name var_name)) arg))))
+    (L.HSyntax.parse.term.container ['$', 'ξ'] (var_name => type => body => (Term.self arg => (Replace body (NamedVar var_name) arg))))
+    (L.HSyntax.parse.term.container ['%', 'μ'] (var_name => type => body => (Term.recursive type arg => (Replace body (NamedVar var_name) arg))))
+    L.HSyntax.parse.term.variable
+    (L.HSyntax.parse.with_paren L.HSyntax.parse.term)
+  ]
+}
+
+Show (NamedVar name) = name
+
+Main {
+  //let v = (Parser.run L.HSyntax.parse.term "μBoolξboolλproposition: λ_: Bool Type λtrue: (proposition λpλtλf t) λfalse: (proposition λpλtλf f) (proposition bool)")
+  let v = (Parser.run L.HSyntax.parse.term "μx0 ξx1(λ(x2: λ(x2: x0) Type) λ(x3: (x2 λx3 λx4 λx5 x4)) λ(x4: (x2 λx4 λx5 λx6 x6)) (x2 x1))")
+  match Either v {
+    left => (Show v.val)
+    right => v.val
+  }
+}

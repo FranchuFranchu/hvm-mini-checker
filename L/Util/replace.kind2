@@ -1,0 +1,6 @@
+
+L.Util.replace (term: L.Term) (from: L.Term) (to: L.Term): L.Term
+L.Util.replace L.Term.hole L.Term.hole to = to
+L.Util.replace term from to = (Bool.if (L.Util.compare term from 0) to 
+  (L.Util.recurse term (subterm => (L.Util.replace subterm from to)))
+)

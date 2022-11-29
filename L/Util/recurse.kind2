@@ -1,0 +1,13 @@
+/// Run a function on all subterms of a term
+
+L.Util.recurse (term: L.Term) (f: L.Term -> L.Term): L.Term
+L.Util.recurse (L.Term.lam type body) f = L.Term.lam (f type) (arg => (f (body arg)))
+L.Util.recurse (L.Term.flat_lam type body depth) f = (L.Term.flat_lam (f type) (f body) depth)
+L.Util.recurse (L.Term.app function body) f = L.Term.app (f function) (f body)
+L.Util.recurse (L.Term.typed type value) f = L.Term.typed (f type) (f value)
+L.Util.recurse (L.Term.self body) f = L.Term.self (arg => (f (body arg)))
+L.Util.recurse (L.Term.flat_self body depth) f = L.Term.flat_self (f body) depth
+L.Util.recurse (L.Term.recursive type unroll) f = L.Term.recursive (f type) (arg => (f (unroll arg)))
+L.Util.recurse (L.Term.flat_recursive type unroll depth) f = L.Term.flat_recursive (f type) (f unroll) depth
+L.Util.recurse a f = a
+

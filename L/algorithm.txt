@@ -1,0 +1,133 @@
+This is a document describing how a typechecker could work.
+
+terms: 
+  "λ(var: type)(body)" # function type constructor
+  "μ(var: type)(body)" # fixpoint type constructor - primitive for recursive types
+  "ξvar(body)" # self dependent type constructor # here type isn't specified because it's always the type itself
+  "function(arg)" # apply function
+  "value : type" # type forcing
+  # i think "value : type" = μ(_: type)(value)" so it's unnecessary
+  "var" # variable
+  "Type" # the type of everything
+
+evaluating:
+  "λvar(body)(argument)" = "body[var -> argument]"
+  "μvar(body)" = body[var -> μvar(body)] # TODO this isn't really true because evaluating perhaps should only 
+    # be done directly on other routines.
+  "ξvar(body)" = "ξvar(body)"
+  "value : type" = value
+  "var" = "var"
+
+inference:
+  "λ(var: type)(body)" = λargument (infer body[var -> argument]) # and set var's type to type
+  "ξvar(body)" = "ξargument (infer body[var -> argument])" # set var's type to ξvar(body)
+  "μvar(body)" = "μnat(infer body[Nat -> μNat(body)])"
+  "function(arg)" = infer(function)(arg)
+  "value : type" = unify(type, infer value)
+  "var" = # lookup type #
+
+checking:
+  "λ(v1: t1)(b1)", "λ(v2: t2)(b2)" = "λ(v3: unify(t1, t2))(check(b1[v1 -> v3], b2[v2 -> v3]))"
+  any, "ξvar(body)" = check(any, body[var -> any]) # this is ξ's magic
+  any, "μvar(body)" == check(any, body[var -> μvar(body)])
+  var, Type = True
+  var, type == unify(infer(var), type)
+
+unify:
+  f1(a1), f1(a2) = unify(a1, a2)
+  "λ(v1: t1)(b1)", "λ(v2: t2)(b2)" = λ(v3: unify(t1, t2))(unify(b1[v1 -> v3], b2[v2 -> v3]))
+  a, b = if equal(roll(a), roll(b)) then a else error
+
+
+equal: # checks for syntactic equality
+  "λ(v1: t1)(b1)", "λ(v2: t2)(b2)" = equal(t1, t2) and equal(b1[v1 -> dummy])(b2[v2 -> dummy])
+  "μ(v1: t1)(b1)", "μ(v2: t2)(b2)" = equal(t1, t2) and equal(b1[v1 -> dummy])(b2[v2 -> dummy])
+  a, b = false
+  a, a = true
+
+roll: # Gets canonical form of type
+  "λ(var: type)(body)" = "λ(var: roll type)(roll body)"
+  "ξvar(body)" = "ξvar(roll body)"
+  "function(arg) = (roll function)(roll arg)"
+  "var" = var
+  
+  # The complicated part is rolling recursive types
+  μx (x x)
+  unroll:
+  (μx (x x) μx (x x))
+  
+  "μ(var: type)(body)" = "μ(var: roll type)(roll body[μNat(body) -> Nat])" # at the end the result will be the μvar(canon)  where canon is canonical
+  
+
+Here are some examples:
+
+Given:
+  (Zero: Nat)
+Infer(λvar(λa(Zero)(var))) = 
+  = λargument(infer λa(Zero)(argument))
+  = λargument(λargument2(infer (Zero))(argument))
+  = λargument(λargument2(Nat)(argument))
+  # reduces to:
+  λargument(Nat)
+
+Given:
+
+Check term λpλtλf(t) against type μBoolξboolλ(proposition: λ(_: Bool)(Type))
+  λ(true: proposition(λ(p: λ(_: Bool)(Type))λ(t: Bool)λ(f: Bool) t) )
+  λ(false: false(λ(p: λ(_: Bool)(Type))λ(t: Bool)λ(f: Bool) f))
+  (proposition bool) =
+
+  # first we'll abbreviate the contents of the mu expression as term_m
+
+  check("λpλtλf(t)", "μBool(term_m)")
+  check("λpλtλf(t)", "term_m[Bool -> μBool(term_m)]")
+  check("λpλtλf(t)", "ξboolλ(proposition: λ(_: Bool)(Type))
+  λ(true: proposition(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t) )
+  λ(false: false(λ(p: λ(_: μBool(term_m))(Type))λ(t: BμBool(term_m)ool)λ(f: μBool(term_m)) f))
+  (proposition bool)")
+  # replace bool with the value #
+  check("λpλtλf(t)", "λ(proposition: λ(_: Bool)(Type)")
+  λ(true: proposition(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t) )
+  λ(false: false(λ(p: λ(_: μBool(term_m))(Type))λ(t: BμBool(term_m)ool)λ(f: μBool(term_m)) f))
+  (proposition λpλtλf(t))") = "λ(proposition: λ(_: Bool)(Type))
+  λ(true: proposition(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t) )
+  λ(false: false(λ(p: λ(_: μBool(term_m))(Type))λ(t: BμBool(term_m)ool)λ(f: μBool(term_m)) f))
+  (check(true, proposition λpλtλf t))" # after many applications of the lambda-lambda checking rule
+  # we'll abbreviate the expression as lambda_a(check(true, proposition λpλtλf t))
+  # let's look at what happens
+  check(true, proposition λpλtλf t)
+  unify(infer(true), proposition λpλtλf t)
+  # true was set to be proposition(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t) before
+  unify(infer(true), proposition λpλtλf t)
+  unify(proposition(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t), proposition(λpλtλf t))
+  # it's quite clear these two are equal
+  # the only difference s that on the left the terms aren't typed.
+  unify((λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t), λpλtλf t)
+  unify((λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t), λpλtλf t)
+  λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) unify(t, t)
+  λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t if equal(t, t)
+  λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t if equaTrue
+  λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t
+
+  # therefore check(true, proposition λpλtλf t) = λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m))
+  lambda_a(check(true, proposition λpλtλf t)) = lambda_a(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)))
+  = "λ(proposition: λ(_: Bool)(Type))
+  λ(true: proposition(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t) )
+  λ(false: false(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m)ool)λ(f: μBool(term_m)) f))
+  λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t"
+
+  # that's λpλtλf(t)'s type in this instance
+  # as you can see, it typechecks!
+  
+
+
+Comparison
++-----------------------------+---+---+---+
+|              .              | λ | μ | ξ |
++-----------------------------+---+---+---+
+| Needs argument to get type  | X | - | X |
+| Needs argument to get value | X | - | - |
+| Argument type implicit      | - | - | X |
+| Argument type implicit      | - | - | X |
++-----------------------------+---+---+---+
+

@@ -1,0 +1,7 @@
+L.Checker.check (term: L.Term) (type: L.Term): L.Term
+L.Checker.check (L.Term.lam t1 b1) (L.Term.lam t2 b2) = (L.Term.lam (L.Checker.unify t1 t2) (argument => (L.Checker.check (b1 argument) (b2 argument))))
+L.Checker.check term (L.Term.recursive type unroll) = (L.Checker.check term (unroll (L.Term.recursive type unroll))) // (L.Checker.check term (unroll (L.Term.typed (L.Term.recursive type unroll) type)))
+L.Checker.check term (L.Term.self body) = (L.Checker.check term (body term)) // (L.Checker.check term (body (L.Term.typed term (L.Term.self body))))
+L.Checker.check a L.Term.type = L.Term.type
+L.Checker.check a L.Term.hole = L.Checker.infer a
+L.Checker.check term type = (L.Checker.unify (L.Checker.infer term) type)

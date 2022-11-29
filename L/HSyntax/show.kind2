@@ -1,0 +1,56 @@
+//L.Checker.check (L.Term.flat_lam t1 b1 d1) (L.Term.flat_lam t2 b2 d2) = (L.Term.flat_lam (L.Checker.unify t1 t2) (L.Checker.check (b1 (Typed (Var d1) t1)) (b2 (Typed (Var d1) t2))) d1)
+L.HSyntax.show (term: L.Term): String
+L.HSyntax.show L.Term.type = "Type"
+L.HSyntax.show L.Term.hole = "_"
+L.HSyntax.show (L.Term.lam type body) = L.HSyntax.show (L.Util.reify (L.Term.lam type body) 0)
+L.HSyntax.show (L.Term.recursive type unroll) = L.HSyntax.show (L.Util.reify (L.Term.recursive type unroll) 0)
+L.HSyntax.show (L.Term.self body) = L.HSyntax.show (L.Util.reify (L.Term.self body) 0)
+L.HSyntax.show (L.Term.flat_self body depth) = String.flatten [
+  "ξx" 
+  (U60.to_string depth)
+  "("
+  (L.HSyntax.show body)
+  ")"
+]
+
+L.HSyntax.show (L.Term.flat_lam L.Term.hole body depth) = String.flatten [
+  "λx" 
+  (U60.to_string depth)
+  " "
+  (L.HSyntax.show body)
+]
+L.HSyntax.show (L.Term.flat_recursive L.Term.hole unroll depth) = String.flatten [
+  "μx" 
+  (U60.to_string depth)
+  " "
+  (L.HSyntax.show unroll)
+]
+
+L.HSyntax.show (L.Term.flat_lam type body depth) = String.flatten [
+  "λ(x" 
+  (U60.to_string depth) 
+  ": " 
+  (L.HSyntax.show type)
+  ") "
+  (L.HSyntax.show body)
+]
+L.HSyntax.show (L.Term.flat_recursive type unroll depth) = String.flatten [
+  "μ(x"  
+  (U60.to_string depth) 
+  ": " 
+  (L.HSyntax.show type)
+  ") "
+  (L.HSyntax.show unroll)
+]
+
+L.HSyntax.show (L.Term.app function argument) = String.flatten [
+  "("
+  (L.HSyntax.show function)
+  " "
+  (L.HSyntax.show argument)
+  ")"
+]
+L.HSyntax.show (L.Term.error s) = String.flatten ["<Error: " s ">"]
+L.HSyntax.show (L.Term.typed term type) = (L.HSyntax.show term)//String.flatten [(L.HSyntax.show term) ":" type]
+L.HSyntax.show (L.Term.var index) = String.flatten ["x" (U60.to_string index)]
+

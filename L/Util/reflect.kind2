@@ -1,0 +1,5 @@
+L.Util.reflect (term: L.Term): L.Term
+L.Util.reflect (L.Term.flat_lam type body depth) = (L.Term.lam (L.Util.reflect type) (arg => (L.Util.replace (L.Util.reflect body) (L.Term.var depth) arg)))
+L.Util.reflect (L.Term.flat_recursive type body depth) = (L.Term.recursive (L.Util.reflect type) (arg => (L.Util.replace (L.Util.reflect body) (L.Term.var depth) arg)))
+L.Util.reflect (L.Term.flat_self body depth) = (L.Term.self (arg => (L.Util.replace (L.Util.reflect body) (L.Term.var depth) arg)))
+L.Util.reflect a = (L.Util.recurse a (subterm => (L.Util.reflect subterm)))

@@ -1,0 +1,6 @@
+U60.to_string (number: U60) { 
+(U60.if
+	(< number 10)
+	(String.from_list [(+ '0' number)])
+	(String.concat (U60.to_string (/ number 10)) (String.from_list [(+ '0' (% number 10))])))
+}

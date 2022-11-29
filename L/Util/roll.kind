@@ -1,0 +1,25 @@
+L.Util.roll.walk (term: L.Term) (depth: U60): List L.Term
+L.Util.roll.walk (L.Term.recursive type unroll) depth = [(L.Term.recursive type unroll)]
+L.Util.roll.walk (L.Term.flat_recursive type unroll var_depth)  depth= [(L.Util.reflect (L.Term.flat_recursive type unroll var_depth))]
+L.Util.roll.walk (L.Term.lam type body) depth = L.Util.roll.walk (L.Util.reify (L.Term.lam type body) depth) depth
+L.Util.roll.walk (L.Term.self body) depth = L.Util.roll.walk (L.Util.reify (L.Term.self body) depth) depth
+L.Util.roll.walk (L.Term.flat_self body var_depth) depth = (L.Util.roll.walk body depth)
+L.Util.roll.walk (L.Term.flat_lam type body var_depth) depth = List.concat (L.Util.roll.walk type depth) (L.Util.roll.walk body depth)
+L.Util.roll.walk (L.Term.typed body type) depth = (L.Util.roll.walk body depth)
+L.Util.roll.walk (L.Term.app function argument) depth = List.concat (L.Util.roll.walk function depth) (L.Util.roll.walk argument depth)
+L.Util.roll.walk L.Term.type d = []
+L.Util.roll.walk L.Term.hole d = []
+L.Util.roll.walk (L.Term.error a) d = []
+L.Util.roll.walk (L.Term.var idx) d = []
+//L.Util.roll.walk a d = [(L.Util.recurse a (subterm => (L.Util.roll subterm)))]
+
+L.Util.roll (term: L.Term): L.Term 
+// Dummy term to avoid infinite expansion
+L.Util.roll L.Term.hole = L.Term.hole
+L.Util.roll term = 
+  let subrecs = L.Util.roll.walk term 0
+  let filtered = List.filter subrecs (recursive => (L.Util.ecompare term (L.Util.unroll recursive)))
+  (Maybe.if (List.head filtered)
+    (L.Util.recurse term (st => (L.Util.roll st)))
+    (value => value)
+  )

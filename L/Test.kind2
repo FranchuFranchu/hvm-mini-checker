@@ -1,0 +1,27 @@
+L.Test { Type }
+
+L.Test.Bool.true: L.Term { (L.Term.lam L.Term.hole (p => (L.Term.lam L.Term.hole (t => (L.Term.lam L.Term.hole (f => t)))))) }
+L.Test.Bool.false: L.Term { (L.Term.lam L.Term.hole (p => (L.Term.lam L.Term.hole (t => (L.Term.lam L.Term.hole (f => f)))))) }
+L.Test.Unit.new: L.Term { (L.Term.lam L.Term.hole (p => (L.Term.lam L.Term.hole (new => new)))) }
+L.Test.Bool: L.Term {
+  (L.Term.recursive L.Term.type (boolt => (L.Term.self (boolv => 
+    (L.Term.lam (L.Term.lam boolt (x => L.Term.type)) (proposition =>
+      (L.Term.lam (L.Term.app proposition L.Test.Bool.true) (t => 
+        (L.Term.lam (L.Term.app proposition L.Test.Bool.false) (f => 
+          (L.Term.app proposition boolv)
+        ))
+      ))
+    ))
+  ))))
+}
+L.Test.Bool.and: L.Term {
+  L.Term.hole
+}
+L.Test.TermW: L.Term {
+  (L.Term.recursive L.Term.hole (boolt => (L.Term.self (boolv => 
+    boolv
+  ))))
+}
+L.Test.Mu: L.Term {
+  (L.Term.lam L.Term.hole (argument => (L.Term.recursive L.Term.hole (this => (L.Term.lam L.Term.hole (w => this))))))
+}

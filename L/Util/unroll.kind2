@@ -1,0 +1,5 @@
+L.Util.unroll (term: L.Term): L.Term
+L.Util.unroll (L.Term.recursive type unroll) = (unroll (L.Term.recursive type unroll))
+L.Util.unroll (L.Term.flat_recursive type unroll depth) = L.Util.replace unroll (L.Term.var depth) (L.Term.flat_recursive type unroll depth)
+L.Util.unroll a = (L.Util.recurse a (st => L.Util.unroll st))
+

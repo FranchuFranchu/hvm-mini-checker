@@ -1,0 +1,10 @@
+L.Util.eval.app (function: L.Term) (argument: L.Term): L.Term
+L.Util.eval.app (L.Term.lam type body) argument = L.Util.eval (body argument)
+L.Util.eval.app (L.Term.self body) argument = L.Util.eval (body argument)
+L.Util.eval.app function argument = (L.Term.app function argument)
+
+L.Util.eval (term: L.Term): L.Term
+L.Util.eval (L.Term.typed value type) = value
+L.Util.eval (L.Term.app function argument) = L.Util.eval.app (L.Util.eval function) argument
+L.Util.eval term = (L.Util.recurse term (st => (L.Util.eval st)))
+
