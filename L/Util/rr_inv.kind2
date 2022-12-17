@@ -1,0 +1,9 @@
+L.Util.rr_inv (term: L.Term): (Equal term (L.Util.reflect (L.Util.reify term 0)))
+L.Util.rr_inv L.Term.hole = Equal.refl
+L.Util.rr_inv (L.Term.var depth) = Equal.refl
+L.Util.rr_inv (L.Term.lam type body) =
+  let induction_type = L.Util.rr_inv type
+  let induction_body = arg => (L.Util.rr_inv (body arg))
+  let induction_type = Equal.apply (x => (L.Term.lam x body)) induction_type
+  induction_type
+

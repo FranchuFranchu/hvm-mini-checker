@@ -1,0 +1,9 @@
+L.Util.roll_many (term: L.Term) {
+  let rolled = L.Util.roll term
+  (Bool.if 
+    (L.Util.compare rolled term 0)
+    term
+    (L.Util.roll_many rolled)
+  )
+    
+}

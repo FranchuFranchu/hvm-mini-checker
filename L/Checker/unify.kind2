@@ -2,10 +2,16 @@ L.Checker.unify (l: L.Term) (r: L.Term): L.Term
 L.Checker.unify L.Term.type L.Term.type = L.Term.type
 L.Checker.unify (L.Term.lam t1 b1) (L.Term.lam t2 b2) = (L.Term.lam (L.Checker.unify t1 t2) (argument => (L.Checker.unify (b1 argument) (b2 argument))))
 L.Checker.unify (L.Term.flat_lam t1 b1 d1) r = (L.Checker.unify (L.Util.reflect (L.Term.flat_lam t1 b1 d1)) r)
+L.Checker.unify (L.Term.recursive t1 b1) (L.Term.recursive t2 b2) = (L.Term.recursive (L.Checker.unify t1 t2) (argument => (L.Checker.unify (b1 argument) (b2 argument))))
+L.Checker.unify (L.Term.self b1) (L.Term.self b2) = (L.Term.self (argument => (L.Checker.unify (b1 argument) (b2 argument))))
 L.Checker.unify (L.Term.app f1 a1) (L.Term.app f2 a2) = L.Term.app (L.Checker.unify f1 f2) (L.Checker.unify a1 a2)
 L.Checker.unify (L.Term.typed b1 t1) b2 = L.Term.typed (L.Checker.unify b1 b2) (L.Checker.unify t1 (L.Checker.infer b2))
 L.Checker.unify b1 (L.Term.typed b2 t2) = L.Term.typed (L.Checker.unify b1 b2) (L.Checker.unify t2 (L.Checker.infer b2))
-L.Checker.unify (L.Term.var a) (L.Term.var b) = (U60.if (== a b) (L.Term.var a) (L.Term.error "Var diff"))
+L.Checker.unify (L.Term.var a) (L.Term.var b) = (U60.if (== a b) (L.Term.var a) (L.Term.error (String.flatten [
+  "Can't unify different variables "(L.HSyntax.show (L.Term.var a)) " with " (L.HSyntax.show (L.Term.var b))
+])))
+L.Checker.unify (L.Term.attach a meta) b = (L.Term.attach (L.Checker.unify a b) meta)
+L.Checker.unify a (L.Term.attach b meta) = (L.Term.attach (L.Checker.unify a b) meta)
 L.Checker.unify L.Term.hole a = a
 L.Checker.unify a L.Term.hole = a
 L.Checker.unify L.Term.hole L.Term.hole = L.Term.hole

@@ -4,9 +4,24 @@ L.Util.compare (L.Term.lam t1 b1) (L.Term.lam t2 b2) d = (Bool.and (L.Util.compa
 L.Util.compare (L.Term.app f1 b1) (L.Term.app f2 b2) d = (Bool.and (L.Util.compare f1 f2 d) (L.Util.compare b1 b2 d))
 L.Util.compare (L.Term.self b1) (L.Term.self b2) d = (L.Util.compare (b1 (L.Term.var d)) (b2 (L.Term.var d)) (+ d 1))
 L.Util.compare (L.Term.recursive t1 u1) (L.Term.recursive t2 u2) d = (L.Util.compare (u1 (L.Term.var d)) (u2 (L.Term.var d)) (+ d 1))
+L.Util.compare (L.Term.flat_recursive t1 u1 d1) (L.Term.flat_recursive t2 u2 d2) d = 
+  (Bool.and
+    (L.Util.compare t1 t2 (+ d 1))
+    (L.Util.compare u1 u2 (+ d 1))
+  )
+L.Util.compare (L.Term.flat_lam t1 u1 d1) (L.Term.flat_lam t2 u2 d2) d = 
+  (Bool.and
+    (L.Util.compare t1 t2 (+ d 1))
+    (L.Util.compare u1 u2 (+ d 1))
+  )
+L.Util.compare (L.Term.flat_self b1 d1) (L.Term.flat_self b2 d2) d = 
+  (L.Util.compare b1 b2 (+ d 1))
 L.Util.compare (L.Term.var a) (L.Term.var b) d = (U60.if (== a b) Bool.true Bool.false)
 L.Util.compare (L.Term.typed a b) (L.Term.typed c d) e = (Bool.and (L.Util.compare a c e) (L.Util.compare b d e))
 L.Util.compare (L.Term.typed a L.Term.hole) b e = (L.Util.compare a b e)
+L.Util.compare (L.Term.attach _ a _) b d = (L.Util.compare a b d)
+L.Util.compare a (L.Term.attach _ b _) d = (L.Util.compare a b d)
 L.Util.compare a (L.Term.typed b L.Term.hole) e = (L.Util.compare a b e)
 L.Util.compare L.Term.hole L.Term.hole d = Bool.true
+L.Util.compare L.Term.opaque L.Term.opaque d = Bool.true
 L.Util.compare a b d = Bool.false

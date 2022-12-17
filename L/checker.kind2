@@ -1,13 +1,3 @@
-
-W: L.Test
-
-Main: _
-//Main = Show (Roll L.Test.TermW)
-//Main = EREqual (Term.lam (Term.hole) (z => (Term.recursive (Term.hole) (x0 => (Term.lam (Term.hole) z => x0))))) TestMu
-//Main = Show (Roll (Roll (Unroll TestMu)))
-//Main = Show (Eval  (Term.lam Term.hole (w => (Term.app (Term.lam Term.hole (arg => (Term.app w arg))) w))))
-Main = L.HSyntax.show (L.Checker.check L.Test.Bool.true L.Test.Bool)
-
 // a small  note for myself
 // (Check L.Test.Bool.false L.Test.Bool) != L.Test.Bool
 // Check actually returns a less broad version of the type that only works for L.Test.Bool.false

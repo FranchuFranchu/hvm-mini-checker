@@ -1,0 +1,55 @@
+Import: L.Test
+
+Code.Bool {  "μ(Bool: Type) ξbool(λ(proposition: λ(_: Bool) Type) λ(true: (proposition λp λt λf t)) λ(false: (proposition λp λt λf f)) (proposition bool))" }
+Code.Bool.true { "λp λt λf t" }
+
+Code.Rb {
+"Bool: Type = μ(Bool: Type) ξbool(λ(proposition: λ(_: Bool) Type) λ(true: (proposition λp λt λf t)) λ(false: (proposition λp λt λf f)) (proposition bool))
+Bool.true: Bool = λp λt λf t"
+}
+
+Code.Test1 { "μx λa λ(_: x)a" }
+Code.Test2 { L.Term.recursive (L.Term.hole) (x0 => (L.Term.lam (L.Term.hole) (x1 => (L.Term.lam x0 (x2 => x1))))) }
+W (a: L.Term) { (HVM.log (L.HSyntax.show a) a)} 
+
+Newline { (String.cons 10 String.nil) }
+
+Sample {
+	let show = x => (L.HSyntax.show x)
+  String.flatten [
+  	"Bool = "
+  	(show L.Test.Bool)
+  	Newline
+  	"Bool.true = "
+  	(show L.Test.Bool.true)
+    Newline
+    "Bool.false = "
+    (show L.Test.Bool.false)
+  	Newline
+  	"Unit.new = "
+  	(show L.Test.Unit.new)
+  	Newline
+  	"Checking Bool.true against Bool = "
+ 		(L.HSyntax.show (L.Checker.check L.Test.Bool.true L.Test.Bool))
+  	Newline
+  	"Checking Unit.new against Bool = "
+ 		(L.HSyntax.show (L.Checker.check L.Test.Unit.new L.Test.Bool))
+  	
+  ]
+}
+
+HVM.print <t> <u> (a: t) (b: u) {
+  b
+}
+
+Main {
+  //String.flatten [ "If you check `" (L.HSyntax.show bool_true) "` against `" (L.HSyntax.show bool) "` you get `" (L.HSyntax.show (L.Checker.check bool_true bool)) "`"]
+
+  //L.HSyntax.show (L.Util.roll (L.Util.unroll L.Test.Bool))
+  //Parser.run (L.Rulebook.parse (L.HSyntax.parse.term L.DepthTable.new)) Code.Rb
+  //let t = (L.Util.reflect (L.HSyntax.parse Code.Test1))
+  do IO {
+    ask IO.output Sample
+    return "Done."
+  } 
+}

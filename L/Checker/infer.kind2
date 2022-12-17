@@ -5,6 +5,7 @@ L.Checker.infer (L.Term.app function arg) = (L.Term.app (L.Checker.infer functio
 L.Checker.infer (L.Term.typed value type) = type
 L.Checker.infer (L.Term.recursive type body) = (L.Checker.unify type (L.Checker.infer (body (L.Term.var 0))))
 L.Checker.infer (L.Term.weak_typed value type) = (L.Checker.unify (L.Checker.infer value) type)
-L.Checker.infer (L.Term.var a) = L.Term.error "can't infer variable"
+L.Checker.infer (L.Term.attach value meta) = (L.Checker.infer value)
+L.Checker.infer (L.Term.var a) = L.Term.error (String.flatten ["Can't infer variable, idx " (U60.to_string a)])
 L.Checker.infer L.Term.type = L.Term.type
 

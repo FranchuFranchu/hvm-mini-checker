@@ -9,5 +9,6 @@ L.Util.recurse (L.Term.self body) f = L.Term.self (arg => (f (body arg)))
 L.Util.recurse (L.Term.flat_self body depth) f = L.Term.flat_self (f body) depth
 L.Util.recurse (L.Term.recursive type unroll) f = L.Term.recursive (f type) (arg => (f (unroll arg)))
 L.Util.recurse (L.Term.flat_recursive type unroll depth) f = L.Term.flat_recursive (f type) (f unroll) depth
+L.Util.recurse (L.Term.attach type value metadata) f = (L.Term.attach (f value) metadata)
 L.Util.recurse a f = a
 

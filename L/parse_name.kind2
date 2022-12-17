@@ -1,0 +1,12 @@
+L.parse.is_word_char: Char -> Bool {
+  char => (U60.if (|(|(|(|
+    (& (<= char 'z') (>= char 'a'))
+    (& (<= char 'Z') (>= char 'A')))
+    (& (<= char '9') (>= char '0')))
+    (== char '_'))
+    (== char '.')
+  ) Bool.true Bool.false)
+}
+
+L.parse_name: Parser String { Parser.take_while1 L.parse.is_word_char }
+

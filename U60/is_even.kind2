@@ -1,4 +1,3 @@
-#inline
 U60.is_even (n: U60) : Bool {
   Bool.not (U60.is_odd n)
 }

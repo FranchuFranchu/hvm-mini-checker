@@ -1,0 +1,33 @@
+L.VarTable: Type
+L.VarTable = List L.VarTable.Entry
+
+L.VarTable.new: L.VarTable
+L.VarTable.new = []
+
+L.VarTable.get (table: L.VarTable) (name: U60): Maybe L.Term
+L.VarTable.get table key = (Maybe.map  (x => (Pair.snd x)) (List.head (List.filter table e => (L.VarTable.Entry.compare key e))))
+
+L.VarTable.set (table: L.VarTable) (name: U60) (value: L.Term): L.VarTable
+L.VarTable.set table name value = 
+  let entry = (List.head (List.filter table e => (L.VarTable.Entry.compare name e)))
+  match Maybe entry {
+    none =>
+      // Insert
+      (List.cons (Pair.new name value) table)
+    some =>
+      // Replace value
+      List.map table (entry => (Bool.if (L.VarTable.Entry.compare name entry)
+        (Pair.new name value)
+        entry
+      ))
+  }
+
+
+// Implementation
+L.VarTable.Entry: Type
+L.VarTable.Entry = Pair U60 L.Term
+L.VarTable.Entry.compare (key: U60) (e: L.VarTable.Entry) {
+  (U60.if (== key (Pair.fst e)) Bool.true Bool.false)
+}
+
+

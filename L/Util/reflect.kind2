@@ -1,5 +1,17 @@
-L.Util.reflect (term: L.Term): L.Term
-L.Util.reflect (L.Term.flat_lam type body depth) = (L.Term.lam (L.Util.reflect type) (arg => (L.Util.replace (L.Util.reflect body) (L.Term.var depth) arg)))
-L.Util.reflect (L.Term.flat_recursive type body depth) = (L.Term.recursive (L.Util.reflect type) (arg => (L.Util.replace (L.Util.reflect body) (L.Term.var depth) arg)))
-L.Util.reflect (L.Term.flat_self body depth) = (L.Term.self (arg => (L.Util.replace (L.Util.reflect body) (L.Term.var depth) arg)))
-L.Util.reflect a = (L.Util.recurse a (subterm => (L.Util.reflect subterm)))
+L.Util.reflect.go (term: L.Term) (table: L.VarTable): L.Term
+L.Util.reflect.go (L.Term.flat_lam type body depth) table = 
+  L.Term.lam (L.Util.reflect.go type table) (arg => (L.Util.reflect.go body (L.VarTable.set table depth arg)))
+L.Util.reflect.go (L.Term.flat_recursive type body depth) table = 
+  L.Term.recursive (L.Util.reflect.go type table) (arg => (L.Util.reflect.go body (L.VarTable.set table depth arg)))
+L.Util.reflect.go (L.Term.flat_self body depth) table = 
+  L.Term.self (arg => (L.Util.reflect.go body (L.VarTable.set table depth arg)))
+L.Util.reflect.go (L.Term.lam type body) table = (L.Term.lam type body)
+L.Util.reflect.go (L.Term.attach a b) table = L.Util.reflect.go a table
+L.Util.reflect.go (L.Term.var depth) table = let v = (L.VarTable.get table depth)
+  match Maybe v {
+    some => v.value
+    none => (L.Term.var depth)
+  }
+L.Util.reflect.go term table = L.Util.recurse term (subterm => L.Util.reflect.go subterm table)
+
+L.Util.reflect (term: L.Term) { L.Util.reflect.go term L.VarTable.new } 

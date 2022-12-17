@@ -8,7 +8,7 @@ terms:
   "value : type" # type forcing
   # i think "value : type" = μ(_: type)(value)" so it's unnecessary
   "var" # variable
-  "Type" # the type of everything
+  "Type" # the type of all types
 
 evaluating:
   "λvar(body)(argument)" = "body[var -> argument]"
@@ -101,7 +101,7 @@ Check term λpλtλf(t) against type μBoolξboolλ(proposition: λ(_: Bool)(Typ
   unify(infer(true), proposition λpλtλf t)
   unify(proposition(λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t), proposition(λpλtλf t))
   # it's quite clear these two are equal
-  # the only difference s that on the left the terms aren't typed.
+  # the only difference s that on the right the terms aren't typed.
   unify((λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t), λpλtλf t)
   unify((λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) t), λpλtλf t)
   λ(p: λ(_: μBool(term_m))(Type))λ(t: μBool(term_m))λ(f: μBool(term_m)) unify(t, t)

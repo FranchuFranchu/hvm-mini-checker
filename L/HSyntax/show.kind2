@@ -1,47 +1,45 @@
+
+
+L.HSyntax.show.name_type_body (char: Char) (name: Maybe String) (type: L.Term) (body: L.Term) (depth: U60): String
+L.HSyntax.show.name_type_body char Maybe.none L.Term.hole body depth = (String.cons char (String.flatten [
+  "x" (U60.to_string depth) " " (L.HSyntax.show body)
+]))
+L.HSyntax.show.name_type_body char (Maybe.some name) L.Term.hole body depth = (String.cons char (String.flatten [
+  name " " (L.HSyntax.show body)
+]))
+L.HSyntax.show.name_type_body char Maybe.none type body depth = (String.cons char (String.flatten [
+  "x" (U60.to_string depth) ": " (L.HSyntax.show type) " " (L.HSyntax.show body)
+]))
+L.HSyntax.show.name_type_body char (Maybe.some name) type body depth = (String.cons char (String.flatten [
+  name ": " (L.HSyntax.show type) " " (L.HSyntax.show body)
+]))
+
 //L.Checker.check (L.Term.flat_lam t1 b1 d1) (L.Term.flat_lam t2 b2 d2) = (L.Term.flat_lam (L.Checker.unify t1 t2) (L.Checker.check (b1 (Typed (Var d1) t1)) (b2 (Typed (Var d1) t2))) d1)
 L.HSyntax.show (term: L.Term): String
 L.HSyntax.show L.Term.type = "Type"
 L.HSyntax.show L.Term.hole = "_"
+L.HSyntax.show (L.Term.error s) = String.flatten ["<Error: " s ">"]
+L.HSyntax.show (L.Term.typed term type) = (L.HSyntax.show term)
+L.HSyntax.show (L.Term.var index) = String.flatten ["x" (U60.to_string index)]
+//L.HSyntax.show (L.Term.attach String (L.Term.var index) name) = name
+L.HSyntax.show (L.Term.opaque) = "???"
 L.HSyntax.show (L.Term.lam type body) = L.HSyntax.show (L.Util.reify (L.Term.lam type body) 0)
 L.HSyntax.show (L.Term.recursive type unroll) = L.HSyntax.show (L.Util.reify (L.Term.recursive type unroll) 0)
 L.HSyntax.show (L.Term.self body) = L.HSyntax.show (L.Util.reify (L.Term.self body) 0)
-L.HSyntax.show (L.Term.flat_self body depth) = String.flatten [
-  "ξx" 
-  (U60.to_string depth)
-  "("
-  (L.HSyntax.show body)
-  ")"
-]
 
-L.HSyntax.show (L.Term.flat_lam L.Term.hole body depth) = String.flatten [
-  "λx" 
-  (U60.to_string depth)
-  " "
-  (L.HSyntax.show body)
-]
-L.HSyntax.show (L.Term.flat_recursive L.Term.hole unroll depth) = String.flatten [
-  "μx" 
-  (U60.to_string depth)
-  " "
-  (L.HSyntax.show unroll)
-]
+//L.HSyntax.show (L.Term.attach String (L.Term.lam type body) data) = L.HSyntax.show (L.Util.reify (L.Term.attach (L.Term.lam type body) data) 0)
+//L.HSyntax.show (L.Term.attach String (L.Term.recursive type unroll) data) = L.HSyntax.show (L.Util.reify (L.Term.attach (L.Term.recursive type unroll) data) 0)
+//L.HSyntax.show (L.Term.attach String (L.Term.self body) data) = L.HSyntax.show (L.Util.reify (L.Term.attach (L.Term.self body) data) 0)
 
-L.HSyntax.show (L.Term.flat_lam type body depth) = String.flatten [
-  "λ(x" 
-  (U60.to_string depth) 
-  ": " 
-  (L.HSyntax.show type)
-  ") "
-  (L.HSyntax.show body)
-]
-L.HSyntax.show (L.Term.flat_recursive type unroll depth) = String.flatten [
-  "μ(x"  
-  (U60.to_string depth) 
-  ": " 
-  (L.HSyntax.show type)
-  ") "
-  (L.HSyntax.show unroll)
-]
+//L.HSyntax.show (L.Term.attach String (L.Term.flat_self body depth) name) = L.HSyntax.show.name_type_body 'ξ' (Maybe.some name) L.Term.hole body depth
+//L.HSyntax.show (L.Term.attach String (L.Term.flat_recursive type body depth) name) = L.HSyntax.show.name_type_body 'μ' (Maybe.some name) type body depth
+//L.HSyntax.show (L.Term.attach String (L.Term.flat_lam type body depth) name) = L.HSyntax.show.name_type_body 'λ' (Maybe.some name) type body depth
+
+L.HSyntax.show (L.Term.flat_self body depth) = L.HSyntax.show.name_type_body 'ξ' Maybe.none L.Term.hole body depth
+L.HSyntax.show (L.Term.flat_recursive type body depth) = L.HSyntax.show.name_type_body 'μ' Maybe.none type body depth
+L.HSyntax.show (L.Term.flat_lam type body depth) = L.HSyntax.show.name_type_body 'λ' Maybe.none type body depth
+
+L.HSyntax.show (L.Term.attach a meta) = L.HSyntax.show a
 
 L.HSyntax.show (L.Term.app function argument) = String.flatten [
   "("
@@ -50,7 +48,4 @@ L.HSyntax.show (L.Term.app function argument) = String.flatten [
   (L.HSyntax.show argument)
   ")"
 ]
-L.HSyntax.show (L.Term.error s) = String.flatten ["<Error: " s ">"]
-L.HSyntax.show (L.Term.typed term type) = (L.HSyntax.show term)//String.flatten [(L.HSyntax.show term) ":" type]
-L.HSyntax.show (L.Term.var index) = String.flatten ["x" (U60.to_string index)]
 

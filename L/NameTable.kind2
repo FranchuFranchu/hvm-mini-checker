@@ -1,0 +1,33 @@
+L.NameTable: Type
+L.NameTable = List Entry
+
+L.NameTable.new: L.NameTable
+L.NameTable.new = []
+
+L.NameTable.get (table: L.NameTable) (name: String): Maybe L.Term
+L.NameTable.get table key = (Maybe.map  (x => (Pair.snd x)) (List.head (List.filter table e => (Entry.compare key e))))
+
+L.NameTable.set (table: L.NameTable) (name: String) (value: L.Term): L.NameTable
+L.NameTable.set table name value = 
+  let entry = (List.head (List.filter table e => (Entry.compare name e)))
+  match Maybe entry {
+    none =>
+      // Insert
+      (List.cons (Pair.new name value) table)
+    some =>
+      // Replace value
+      List.map table (entry => (Bool.if (Entry.compare name entry)
+        (Pair.new name value)
+        entry
+      ))
+  }
+
+
+// Implementation
+Entry: Type
+Entry = Pair String L.Term 
+Entry.compare (key: String) (e: Entry) {
+  (String.equal (Pair.fst e) key)
+}
+
+

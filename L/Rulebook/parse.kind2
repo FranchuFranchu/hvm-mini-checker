@@ -1,0 +1,31 @@
+L.Rulebook.parse_entry (term_parser: Parser L.Term): Parser (Pair.new String (Pair.new L.Term L.Term)) {
+    do Parser {
+        ask _ = Parser.skip_whitespace
+        ask name = L.parse_name
+        ask type = Parser.first_of [
+            do Parser {
+                ask _ = Parser.skip_whitespace
+                ask _ = Parser.char ':'
+                ask type = term_parser
+                return Maybe.some type
+            }
+            do Parser {
+                return Maybe.none
+            }
+        ]
+        ask _ = Parser.skip_whitespace
+        ask _ = Parser.char '='
+        ask term = term_parser
+
+        let type = match Maybe type {
+            some => type.value
+            none => (L.Checker.infer term)
+        }
+        
+        return (Pair.new name (Pair.new type term))
+    }
+}
+
+L.Rulebook.parse (term_parser: L.Term): Parser L.Rulebook {
+    Parser.many (L.Rulebook.parse_entry term_parser)
+}

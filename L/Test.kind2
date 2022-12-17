@@ -14,9 +14,6 @@ L.Test.Bool: L.Term {
     ))
   ))))
 }
-L.Test.Bool.and: L.Term {
-  L.Term.hole
-}
 L.Test.TermW: L.Term {
   (L.Term.recursive L.Term.hole (boolt => (L.Term.self (boolv => 
     boolv

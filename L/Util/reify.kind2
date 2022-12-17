@@ -1,5 +1,20 @@
 L.Util.reify (term: L.Term) (depth: U60): L.Term
+
+  
+L.Util.reify (L.Term.attach (L.Term.lam type body) meta) depth = 
+  let type = (L.Util.reify type depth)
+  let body = (L.Util.reify (body (L.Term.typed (L.Term.attach (L.Term.var depth) meta) type)) (+ depth 1))
+  (L.Term.attach (L.Term.flat_lam type body depth) meta)
+L.Util.reify (L.Term.attach (L.Term.recursive type unroll) meta) depth =
+  let utype = (L.Util.reify type depth)
+  let unroll = (L.Util.reify (unroll (L.Term.typed (L.Term.attach (L.Term.var depth) meta) type)) (+ depth 1))
+  (L.Term.attach (L.Term.flat_recursive utype unroll depth) meta)
+L.Util.reify (L.Term.attach (L.Term.self body) meta) depth = 
+  let ubody = (L.Util.reify (body (L.Term.typed (L.Term.attach (L.Term.var depth) meta) (L.Term.self body))) (+ depth 1))
+  (L.Term.attach (L.Term.flat_self ubody depth) meta)
+  
 L.Util.reify (L.Term.lam type body) depth = 
+  let body = body
   let type = (L.Util.reify type depth)
   let body = (L.Util.reify (body (L.Term.typed (L.Term.var depth) type)) (+ depth 1))
   (L.Term.flat_lam type body depth)
@@ -12,5 +27,7 @@ L.Util.reify (L.Term.self body) depth =
   (L.Term.flat_self ubody depth)  
 L.Util.reify (L.Term.app function body) d = L.Term.app (L.Util.reify function d) (L.Util.reify body d)
 L.Util.reify (L.Term.typed function body) d = L.Term.typed (L.Util.reify function d) body
+L.Util.reify (L.Term.attach term metadata) d = (L.Term.attach (L.Util.reify term d) metadata)
 L.Util.reify term d = term
+
 

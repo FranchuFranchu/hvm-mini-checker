@@ -7,8 +7,12 @@ L.Term.weak_typed (object: L.Term) (type: L.Term): L.Term
 L.Term.self (body: L.Term -> L.Term): L.Term
 L.Term.flat_self (body: L.Term) (depth: U60): L.Term
 L.Term.var (depth: U60): L.Term
+L.Term.named_var (depth: U60): L.Term
 L.Term.recursive (type: L.Term) (unroll: L.Term -> L.Term): L.Term
 L.Term.flat_recursive (type: L.Term) (unroll: L.Term) (depth: U60): L.Term
 L.Term.hole: L.Term
 L.Term.type: L.Term
 L.Term.error (error: String): L.Term
+// Attach arbitrary metadata to a term. Can be used for origin, or the name of a variable, for example.
+L.Term.attach <type> (term: L.Term) (metadata: type): L.Term
+L.Term.opaque: L.Term

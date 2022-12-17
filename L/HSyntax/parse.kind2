@@ -1,58 +1,52 @@
-L.HSyntax.parse.is_word_char: Char -> Bool {
-  char => (U60.if (|(|(|
-    (& (<= char 'z') (>= char 'a'))
-    (& (<= char 'Z') (>= char 'A')))
-    (& (<= char '9') (>= char '0')))
-    (== char '_')
-  ) Bool.true Bool.false)
-}
 
-NamedVar (name: String): Term // Useful tool here.
 
-L.HSyntax.parse.name: Parser String { Parser.take_while1 L.HSyntax.parse.is_word_char }
-
-L.HSyntax.parse.term.variable {
+L.HSyntax.parse.term.variable (table: L.DepthTable) {
   do Parser {
     ask _ = Parser.skip_whitespace
-    ask name = L.HSyntax.parse.name
-    return (NamedVar name)
+    ask name = L.parse_name
+    return (Bool.if (String.equal name "Type")
+      L.Term.type
+      (Bool.if (String.equal name "_")
+        L.Term.hole
+        (L.Term.attach (L.Term.var (Maybe.default (L.DepthTable.get table name) 123)) name)
+    ))
   }
 }
-L.HSyntax.parse.term.apply {
+L.HSyntax.parse.term.apply (table: L.DepthTable) {
   do Parser {
     ask _ = Parser.skip_whitespace
     ask _ = Parser.char '('
-    ask t1 = L.HSyntax.parse.term
-    ask t2 = L.HSyntax.parse.term
+    ask t1 = L.HSyntax.parse.term table
+    ask t2 = L.HSyntax.parse.term table
     ask _ = Parser.skip_whitespace
     ask _ = Parser.char ')'
-    return (Term.app t1 t2)
+    return (L.Term.app t1 t2)
   }
 }
 
-L.HSyntax.parse.term.container (chars: List U60) (build: String -> Term -> Term -> Term): Parser Term {
+L.HSyntax.parse.term.container (table: L.DepthTable) (chars: List U60) (build: String -> L.Term -> L.Term -> L.Term): Parser L.Term {
   do Parser {
     ask _ = Parser.skip_whitespace
     ask _ = Parser.first_of (List.map chars (char => Parser.char char))
     ask _ = Parser.skip_whitespace
     ask _ = Parser.try (Parser.char '(')
     ask _ = Parser.skip_whitespace
-    ask var_name = L.HSyntax.parse.name
+    ask var_name = L.parse_name
     ask _ = Parser.skip_whitespace
     Parser.first_of [
       do Parser {
         ask _ = Parser.char ':'
-        ask type = L.HSyntax.parse.term
+        ask type = L.HSyntax.parse.term table
         ask _ = Parser.skip_whitespace
         ask _ = Parser.try (Parser.char ')')
-        ask body = L.HSyntax.parse.term
+        ask body = L.HSyntax.parse.term (L.DepthTable.set table var_name)
         return (build var_name type body)
       }
       do Parser {
-        let type = Term.hole
+        let type = L.Term.hole
         ask _ = Parser.skip_whitespace
         ask _ = Parser.try (Parser.char ')')
-        ask body = L.HSyntax.parse.term
+        ask body = L.HSyntax.parse.term (L.DepthTable.set table var_name)
         return (build var_name type body)
       }
     ]
@@ -70,24 +64,32 @@ L.HSyntax.parse.with_paren <w> (parser: (Parser w)) {
   }
 }
 
-L.HSyntax.parse.term {
+L.HSyntax.show.parse.replace_named_var (table: L.DepthTable) (name: String) (body: L.Term) (with: L.Term): L.Term {
+  (L.Util.replace body (L.Term.var ((Nat.to_u60 (List.length table)))) with)
+}
+
+L.HSyntax.parse.term (table: L.DepthTable) {
+  let next_idx = (+ (Nat.to_u60 (List.length table)) 1)
   Parser.first_of [
-    L.HSyntax.parse.term.apply
-    (L.HSyntax.parse.term.container ['@', 'λ'] (var_name => type => body => (Term.lam type arg => (Replace body (NamedVar (HVM.log var_name var_name)) arg))))
-    (L.HSyntax.parse.term.container ['$', 'ξ'] (var_name => type => body => (Term.self arg => (Replace body (NamedVar var_name) arg))))
-    (L.HSyntax.parse.term.container ['%', 'μ'] (var_name => type => body => (Term.recursive type arg => (Replace body (NamedVar var_name) arg))))
-    L.HSyntax.parse.term.variable
-    (L.HSyntax.parse.with_paren L.HSyntax.parse.term)
+    (L.HSyntax.parse.term.apply table)
+    (L.HSyntax.parse.term.container table ['@', 'λ'] (var_name => type => body => (L.Term.attach (L.Term.flat_lam type body next_idx) var_name)))
+    (L.HSyntax.parse.term.container table ['$', 'ξ'] (var_name => type => body => (L.Term.attach (L.Term.flat_self body next_idx) var_name)))
+    (L.HSyntax.parse.term.container table ['%', 'μ'] (var_name => type => body => (L.Term.attach (L.Term.flat_recursive type body next_idx) var_name)))
+    (L.HSyntax.parse.term.variable table)
+    (L.HSyntax.parse.with_paren (L.HSyntax.parse.term table))
   ]
 }
 
-Show (NamedVar name) = name
+L.HSyntax.parse_either (term: String): Either L.Term Parser.Error {
+  Parser.run (L.HSyntax.parse.term (L.DepthTable.new)) term
+}
 
-Main {
-  //let v = (Parser.run L.HSyntax.parse.term "μBoolξboolλproposition: λ_: Bool Type λtrue: (proposition λpλtλf t) λfalse: (proposition λpλtλf f) (proposition bool)")
-  let v = (Parser.run L.HSyntax.parse.term "μx0 ξx1(λ(x2: λ(x2: x0) Type) λ(x3: (x2 λx3 λx4 λx5 x4)) λ(x4: (x2 λx4 λx5 λx6 x6)) (x2 x1))")
+L.HSyntax.parse (term: String): L.Term {
+  let v = L.HSyntax.parse_either term
   match Either v {
-    left => (Show v.val)
-    right => v.val
+    left => v.val
+    right => let v = v.val; match Parser.Error v {
+      new => L.Term.error v.msg
+    }
   }
 }
